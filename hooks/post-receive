@@ -1,0 +1,11 @@
+#! /bin/sh
+
+while read oldrev newrev refname
+do
+	case $refname in
+		refs/heads/*)
+			branch=${refname##refs/heads/}
+			$GL_BINDIR/node-deploy-branch.sh "$branch" "$GL_REPO"
+			;;
+	esac
+done
