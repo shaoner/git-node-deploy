@@ -31,12 +31,13 @@ update_app()
 	display_info "Update node packages"
 	npm install --silent 2>&1 >/dev/null || display_error "Issue installing packages" || return 2
 	npm update --silent 2>&1 >/dev/null || display_error "Issue updating packages" || return 2
+	# Reset rights
+	display_info "Restore rights"
+	chown -R node:node $APP_DIR
 	# Generates new static files
 	display_info "Build static files"
 	sudo -u node NODE_CONFIG="/etc/node/$NODE_APP/$SERVER_NAME.json" grunt build-prod 2>&1 >/dev/null || display_error "Issue building static files" || return 3
 	# OK
-	display_info "Restore rights"
-	chown -R node:node $APP_DIR
 	display_info "Successfully updated $NODE_APP - $SERVER_NAME"
 	return 0
 }
