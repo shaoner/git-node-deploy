@@ -26,7 +26,7 @@ update_app()
 	display_info "Update app"
 	unset GIT_DIR
 	git fetch origin
-	git reset --hard origin/master
+	git reset --hard origin/$BRANCH
 	# Update packages
 	display_info "Update node packages"
 	npm install --silent 2>&1 >/dev/null || display_error "Issue installing packages" || return 2
