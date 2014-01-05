@@ -35,20 +35,23 @@ Finally, myapp-spare is also stopped while it is updated and restarted.
 - /srv/http/myapp/static/staging/index is the directory where static files are stored in staging
 - /etc/node/myapp/ contains main.json, spare.json and staging.json which are configuration files for myapp
 
+**/!\** Be careful if you clone a local bare repository to use `git clone --no-hardlinks`, to avoid some issues with `chown`. 
+
 ### The process in detail
 
 0. You rebase your private devel branch on the main devel branch
 1. You develop and fix things in your private devel branch
 2. When your private devel branch is ready you push it to the origin
-3. The git integrator (maybe you) takes care about merging all private devel branch into the devel branch. He can fix conflicts, and makes sure everything fits well.
-4. If it is OK, he merges the devel branch into the staging branch and pushes it to the origin.
-4. On the origin' side, the git hook:
+3. The git integrator (maybe you) takes care about merging all private devel branches into the devel branch. He can fix conflicts, and makes sure everything fits well.
+4. If it is OK, he pushes the devel branch, so each developer can rebase (step 0) 
+5. He merges the devel branch into the staging branch and pushes it to the origin.
+6. On the origin' side, the git hook:
   - stops myapp-staging if running (but it should not)
   - updates myapp-staging (git / npm / grunt)
   - start myapp-staging
-5. He can now tests myapp directly online. If it goes wrong, go back to 0.
-6. Assuming everything is OK, he merges the staging branch in the master branch and pushes it to the origin
-8. On the origin' side, the git hook:
+7. He can now tests myapp directly online. If it goes wrong, go back to 0.
+8. Assuming everything is OK, he merges the staging branch in the master branch and pushes it to the origin
+9. On the origin' side, the git hook:
   - stops myapp-staging
   - stops myapp-main
   - updates myapp-main (git / npm / grunt)
