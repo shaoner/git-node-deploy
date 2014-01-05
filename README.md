@@ -35,6 +35,8 @@ Finally, myapp-spare is also stopped while it is updated and restarted.
 - /srv/http/myapp/static/staging/index is the directory where static files are stored in staging
 - /etc/node/myapp/ contains main.json, spare.json and staging.json which are configuration files for myapp
 
+**/!\** Be careful if you clone a local bare repository to use `git clone --no-hardlinks`, to avoid some issues with `chown`. 
+
 ### The process in detail
 
 0. You rebase your private devel branch on the main devel branch
