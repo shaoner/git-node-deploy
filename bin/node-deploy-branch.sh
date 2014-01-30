@@ -13,30 +13,33 @@ BRANCH=$1
 NODE_APP=$2
 NODE_APP_ROOT="/srv/http/$NODE_APP/app"
 UPINSTANCE=${NODE_APP}_node
+LOG=/tmp/git-node-deploy.$NODE_APP.$(date +'%Y%m%d%H%M%S').log
 
 update_app()
 {
 	local SERVER_NAME=$1
 	local APP_DIR="$NODE_APP_ROOT/$SERVER_NAME"
 
-	# Get new changes from master
+	# Get new changes from the branch
 	dir_exists "$APP_DIR" || return 1
 	export GIT_WORK_TREE=$APP_DIR
 	cd "$APP_DIR"
 	display_info "Update app"
 	unset GIT_DIR
-	git fetch origin
-	git reset --hard origin/$BRANCH
+	git fetch origin 2>&1 >> $LOG
+	git reset --hard origin/$BRANCH 2>&1 >> $LOG
+
 	# Update packages
 	display_info "Update node packages"
-	npm install --silent 2>&1 >/dev/null || display_error "Issue installing packages" || return 2
-	npm update --silent 2>&1 >/dev/null || display_error "Issue updating packages" || return 2
-	# Reset rights
-	display_info "Restore rights"
+	npm install --silent 2>&1 >> $LOG || display_error "Issue installing node packages" || return 2
+	npm update --silent 2>&1 >> $LOG || display_error "Issue updating node packages" || return 2
+	# Rights in app dir
+	display_info "Restore rights in $APP_DIR"
 	chown -R node:node $APP_DIR
 	# Generates new static files
 	display_info "Build static files"
-	sudo -u node NODE_CONFIG="/etc/node/$NODE_APP/$SERVER_NAME.json" grunt build-prod 2>&1 >/dev/null || display_error "Issue building static files" || return 3
+	sudo -u node NODE_CONFIG="/etc/node/$NODE_APP/$SERVER_NAME.json" grunt build-prod 2>&1 >> $LOG || display_error "Issue building static files" || return 4
+
 	# OK
 	display_info "Successfully updated $NODE_APP - $SERVER_NAME"
 	return 0
