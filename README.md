@@ -37,6 +37,13 @@ Finally, myapp-spare is also stopped while it is updated and restarted.
 
 **/!\** Be careful if you clone a local bare repository to use `git clone --no-hardlinks`, to avoid some issues with `chown`.
 
+You will also need some privileges for your git user:
+
+```
+git ALL=NOPASSWD: /path/to/git/bin/node-app-manager.sh,/path/to/bin/chrights.sh
+```
+
+
 ### The process in detail
 
 0. You rebase your private devel branch on the main devel branch

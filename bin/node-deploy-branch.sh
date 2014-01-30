@@ -9,9 +9,12 @@ then
 	exit 1
 fi
 
+NODE_MANAGER=$GL_BINDIR/node-app-manager.sh
+CHRIGHT=$GL_BINDIR/chrights.sh
 BRANCH=$1
 NODE_APP=$2
 NODE_APP_ROOT="/srv/http/$NODE_APP/app"
+STATIC_ROOT_DIR="/srv/http/$NODE_APP/static"
 UPINSTANCE=${NODE_APP}_node
 LOG=/tmp/git-node-deploy.$NODE_APP.$(date +'%Y%m%d%H%M%S').log
 
@@ -35,12 +38,23 @@ update_app()
 	display_info "Update node packages"
 	npm install --silent 2>&1 >> $LOG || display_error "Issue installing node packages" || return 2
 	npm update --silent 2>&1 >> $LOG || display_error "Issue updating node packages" || return 2
+
 	# Rights in app dir
 	display_info "Restore rights in $APP_DIR"
-	chown -R node:node $APP_DIR
+	sudo $CHRIGHT own_rec "node:node" "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
+	sudo $CHRIGHT mod_rec_dirs 775 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
+	sudo $CHRIGHT mod_rec_files 664 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
+
 	# Generates new static files
 	display_info "Build static files"
-	sudo -u node NODE_CONFIG="/etc/node/$NODE_APP/$SERVER_NAME.json" grunt build-prod 2>&1 >> $LOG || display_error "Issue building static files" || return 4
+	NODE_CONFIG="/etc/node/$NODE_APP/$SERVER_NAME.json" grunt build-prod 2>&1 >> $LOG || display_error "Issue building static files" || return 4
+
+	# Rights in static app dir
+	display_info "Restore rights in $STATIC_ROOT_DIR"
+
+	sudo $CHRIGHT own_rec "www-data:node" "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 5
+	sudo $CHRIGHT mod_rec_dirs 775 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 5
+	sudo $CHRIGHT mod_rec_files 664 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 5
 
 	# OK
 	display_info "Successfully updated $NODE_APP - $SERVER_NAME"
@@ -50,20 +64,16 @@ update_app()
 restart_app()
 {
 	local SERVER_NAME=$1
-	display_info "Stopping $NODE_APP - $SERVER_NAME"
-	stop $UPINSTANCE SERVER="$SERVER_NAME"
-	update_app "$SERVER_NAME" || return 1
-	display_info "Starting $NODE_APP - $SERVER_NAME"
-	start $UPINSTANCE SERVER="$SERVER_NAME" || return 2
-	waiting_msg "Checking if $NODE_APP-$SERVER_NAME is alive" 6
-	status $UPINSTANCE SERVER="$SERVER_NAME" || display_error "$NODE_APP-$SERVER_NAME died" || return 3
+	sudo $NODE_MANAGER stop "$UPINSTANCE" "$SERVER_NAME" || return $?
+	update_app "$SERVER_NAME" || return $?
+	sudo $NODE_MANAGER start "$UPINSTANCE" "$SERVER_NAME" || return $?
 	return 0
 }
 
 deploy_prod()
 {
 	# stop staging
-	stop $UPINSTANCE SERVER="staging" || display_warn "$NODE_APP - staging server was not running"
+	sudo stop $NODE_MANAGER "$UPINSTANCE" "staging" || display_warn "$NODE_APP - staging server was not running"
 	# 1. Restart and update main
 	restart_app "main" || return 1
 	# 2. Restart and update spare
