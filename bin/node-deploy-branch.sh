@@ -30,6 +30,8 @@ update_app()
 	git reset --hard origin/$BRANCH 2>&1 >> $LOG
 
 	# Update packages
+	display_info "Update bower packages"
+	bower update --silent 2>&1 >> $LOG || display_error "Issue installing bower packages" || return 2
 	display_info "Update node packages"
 	npm install --silent 2>&1 >> $LOG || display_error "Issue installing node packages" || return 2
 	npm update --silent 2>&1 >> $LOG || display_error "Issue updating node packages" || return 2
