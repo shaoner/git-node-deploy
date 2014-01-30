@@ -69,18 +69,16 @@ deploy_prod()
 
 deploy_staging()
 {
-	restart_app "staging" || return 1
+	restart_app "staging" || return $?
 	display_info "$NODE_APP - Staging server is ready"
 	return 0
 }
 
 case $BRANCH in
 	master)
-		deploy_prod
-		exit $?
+		deploy_prod || exit $?
 		;;
 	staging)
-		deploy_staging
-		exit $?
+		deploy_staging || exit $?
 		;;
 esac
