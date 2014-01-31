@@ -39,15 +39,16 @@ update_app()
 	npm install --silent 2>&1 >> $LOG || display_error "Issue installing node packages" || return 2
 	npm update --silent 2>&1 >> $LOG || display_error "Issue updating node packages" || return 2
 
-	# Rights in app dir
-	display_info "Restore rights in $APP_DIR"
-	sudo $CHRIGHT own_rec "node:node" "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
-	sudo $CHRIGHT mod_rec_dirs 775 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
-	sudo $CHRIGHT mod_rec_files 664 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
 
 	# Generates new static files
 	display_info "Build static files"
 	NODE_CONFIG="/etc/node/$NODE_APP/$SERVER_NAME.json" grunt build-prod 2>&1 >> $LOG || display_error "Issue building static files" || return 4
+
+	# Rights in app dir
+	display_info "Restore rights in $APP_DIR"
+	sudo $CHRIGHT mod_rec_dirs 775 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
+	sudo $CHRIGHT mod_rec_files 664 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
+	sudo $CHRIGHT own_rec "node:node" "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 3
 
 	# Rights in static app dir
 	display_info "Restore rights in $STATIC_ROOT_DIR"
