@@ -52,9 +52,9 @@ update_app()
 	# Rights in static app dir
 	display_info "Restore rights in $STATIC_ROOT_DIR"
 
-	sudo $CHRIGHT own_rec "www-data:node" "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 5
-	sudo $CHRIGHT mod_rec_dirs 775 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 5
-	sudo $CHRIGHT mod_rec_files 664 "$APP_DIR" || display_error "Cannot restore rights in $APP_DIR" || return 5
+	sudo $CHRIGHT own_rec "www-data:node" "$STATIC_ROOT_DIR" || display_error "Cannot restore rights in $STATIC_ROOT_DIR" || return 5
+	sudo $CHRIGHT mod_rec_dirs 775 "$STATIC_ROOT_DIR" || display_error "Cannot restore rights in $STATIC_ROOT_DIR" || return 5
+	sudo $CHRIGHT mod_rec_files 664 "$STATIC_ROOT_DIR" || display_error "Cannot restore rights in $STATIC_ROOT_DIR" || return 5
 
 	# OK
 	display_info "Successfully updated $NODE_APP - $SERVER_NAME"
